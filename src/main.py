@@ -1,20 +1,20 @@
-from src.power import power_function
-from src.constants import SAMPLE_CONSTANT
-
+from src.sources import FileTaskSource, GeneratorTaskSource, APITaskSource
+from src.processor import TaskProcessor
 
 def main() -> None:
     """
-    Обязательнная составляющая программ, которые сдаются. Является точкой входа в приложение
-    :return: Данная функция ничего не возвращает
+    описание функции
+    :return:
     """
+    processor = TaskProcessor()
 
-    target, degree = map(int, input("Введите два числа разделенные пробелом: ").split(" "))
+    file_source = FileTaskSource("tasks.txt")
+    gen_source = GeneratorTaskSource(5)
+    api_source = APITaskSource()
 
-    result = power_function(target=target, power=degree)
-
-    print(result)
-
-    print(SAMPLE_CONSTANT)
+    processor.process(file_source)
+    processor.process(gen_source)
+    processor.process(api_source)
 
 if __name__ == "__main__":
     main()
