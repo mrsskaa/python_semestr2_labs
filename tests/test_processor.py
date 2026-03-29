@@ -2,6 +2,7 @@ import pytest
 from src.protocol import TaskSource
 from src.processor import TaskProcessor
 from src.sources import FileTaskSource, GeneratorTaskSource, APITaskSource
+from src.model import Task
 
 
 class MockSource:
@@ -72,7 +73,8 @@ def test_processor_works_with_generator_source():
     result = processor.process(source)
 
     assert len(result) == 3
-    assert result == ["Task 1", "Task 2", "Task 3"]
+    assert all(isinstance(t, Task) for t in result)
+    assert [t.id for t in result] == [1, 2, 3]
 
 
 def test_processor_works_with_api_source():
@@ -89,7 +91,7 @@ def test_processor_works_with_api_source():
         "Доделать дизайн",
         "Начать писать фронт по практике"
     ]
-    assert result == expected
+    assert [t.description for t in result] == expected
 
 
 def test_processor_isinstance_check_uses_protocol():
