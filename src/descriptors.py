@@ -1,5 +1,5 @@
 import logging
-from exceptions import TaskValidationError
+from src.exceptions import TaskValidationError
 
 logger = logging.getLogger(__name__)
 

@@ -1,5 +1,6 @@
 import pytest
 from src.sources import GeneratorTaskSource
+from src.model import Task
 
 
 def test_generator_creates_correct_number_of_tasks():
@@ -15,9 +16,9 @@ def test_generator_task_format():
     source = GeneratorTaskSource(3)
     tasks = source.get_tasks()
 
-    assert tasks[0] == "Task 1"
-    assert tasks[1] == "Task 2"
-    assert tasks[2] == "Task 3"
+    assert tasks[0].id == 1 and tasks[0].description.startswith("Сгенерированная задача")
+    assert tasks[1].id == 2
+    assert tasks[2].id == 3
 
 
 def test_generator_cnt_property_initial_value():
@@ -59,10 +60,10 @@ def test_generator_negative_tasks_in_init():
         GeneratorTaskSource(-5)
 
 
-def test_generator_returns_list_of_strings():
+def test_generator_returns_list_of_tasks():
     """Тест возвращаемого типа"""
     source = GeneratorTaskSource(3)
     tasks = source.get_tasks()
 
     assert isinstance(tasks, list)
-    assert all(isinstance(task, str) for task in tasks)
+    assert all(isinstance(task, Task) for task in tasks)

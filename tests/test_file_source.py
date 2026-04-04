@@ -1,5 +1,6 @@
 import pytest
 from src.sources import FileTaskSource
+from src.model import Task
 
 
 @pytest.fixture
@@ -25,10 +26,11 @@ def test_file_source_reads_tasks(temp_task_file):
     tasks = source.get_tasks()
 
     assert len(tasks) == 4
-    assert tasks[0] == "Задача 1"
-    assert tasks[1] == "Задача 2"
-    assert tasks[2] == "Задача 3"
-    assert tasks[3] == "Задача 4"
+    assert all(isinstance(t, Task) for t in tasks)
+    assert tasks[0].description == "Задача 1"
+    assert tasks[1].description == "Задача 2"
+    assert tasks[2].description == "Задача 3"
+    assert tasks[3].description == "Задача 4"
 
 
 def test_file_source_skips_empty_lines(temp_task_file):
@@ -37,8 +39,8 @@ def test_file_source_skips_empty_lines(temp_task_file):
     tasks = source.get_tasks()
 
     for task in tasks:
-        assert task != ""
-        assert not task.isspace()
+        assert task.description != ""
+        assert not task.description.isspace()
 
 
 def test_file_source_file_not_found():
@@ -63,4 +65,4 @@ def test_file_source_returns_list_of_strings(temp_task_file):
     tasks = source.get_tasks()
 
     assert isinstance(tasks, list)
-    assert all(isinstance(task, str) for task in tasks)
+    assert all(isinstance(task, Task) for task in tasks)
