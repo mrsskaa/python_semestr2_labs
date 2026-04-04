@@ -112,32 +112,40 @@ class GeneratorTaskSource:
 
 
 class APITaskSource:
-    """Заглушка API, возвращает фиксированный список задач."""
+    """
+    Заглушка API, возвращает фиксированный список задач."
+    :param http_client: заглушка HTTP-клиента (может быть None для простоты)
+    """
 
-    def __init__(self):
+    def __init__(self, http_client: object = None):
         """Инициализирует API-заглушку."""
+        self.client = http_client
         logger.info("APITaskSource создан")
 
     def get_tasks(self) -> list[Task]:
         """
-        Возвращает заранее заданный список задач.
+        Имитирует GET-запрос к API и возвращает фиксированный список задач.
 
         :return: фиксированный список задач
         """
-        tasks_data = [
-            "Сделать лабу",
-            "Написать ридми",
-            "Отправить Cамиру",
-            "Доделать дизайн",
-            "Начать писать фронт по практике"
+        response_data = [
+            {"id": 1, "description": "Сделать лабу", "priority": 3, "status": "pending"},
+            {"id": 2, "description": "Написать ридми", "priority": 3, "status": "pending"},
+            {"id": 3, "description": "Отправить Cамиру", "priority": 3, "status": "pending"},
+            {"id": 4, "description": "Доделать дизайн", "priority": 3, "status": "pending"},
+            {"id": 5, "description": "Начать писать фронт по практике", "priority": 3, "status": "pending"}
         ]
+
+        if self.client and hasattr(self.client, 'get'):
+            response_data = self.client.get("/api/tasks")
+
         tasks = []
-        for i, description in enumerate(tasks_data, 1):
+        for task_data in response_data:
             task = Task(
-                id=i,
-                description=description,
-                priority=3,
-                status="pending"
+                id=task_data["id"],
+                description=task_data["description"],
+                priority=task_data["priority"],
+                status=task_data["status"]
             )
             tasks.append(task)
 
