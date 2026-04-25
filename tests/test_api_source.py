@@ -1,5 +1,6 @@
 import pytest
 from src.sources import APITaskSource
+from src.model import Task
 
 
 def test_api_source_returns_fixed_list():
@@ -15,7 +16,7 @@ def test_api_source_returns_fixed_list():
         "Начать писать фронт по практике"
     ]
 
-    assert tasks == expected
+    assert [task.description for task in tasks] == expected
     assert len(tasks) == 5
 
 
@@ -27,12 +28,12 @@ def test_api_source_returns_list():
     assert isinstance(tasks, list)
 
 
-def test_api_source_returns_strings():
-    """Тест, что все элементы списка - строки"""
+def test_api_source_returns_tasks():
+    """Тест, что все элементы списка - Task"""
     source = APITaskSource()
     tasks = source.get_tasks()
 
-    assert all(isinstance(task, str) for task in tasks)
+    assert all(isinstance(task, Task) for task in tasks)
 
 
 def test_api_source_consistent_return():
@@ -41,5 +42,5 @@ def test_api_source_consistent_return():
     tasks1 = source.get_tasks()
     tasks2 = source.get_tasks()
 
-    assert tasks1 == tasks2
+    assert [t.description for t in tasks1] == [t.description for t in tasks2]
     assert tasks1 is not tasks2
