@@ -6,7 +6,7 @@ from src.model import Task
 class TaskSource(Protocol):
     """Протокол источника задач. Требует метод get_tasks"""
 
-    def get_tasks(self) -> List[Task]:
+    async def get_tasks(self) -> List[Task]:
         """
         Возвращает список задач.
         :return: список задач

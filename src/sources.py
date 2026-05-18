@@ -16,7 +16,7 @@ class FileTaskSource:
         self.file_name = file_name
         logger.info(f"FileTaskSource создан с файлом: {file_name}")
 
-    def get_tasks(self) -> list[Task]:
+    async def get_tasks(self) -> list[Task]:
         """
         Читает задачи из файла, игнорируя пустые строки.
 
@@ -89,7 +89,7 @@ class GeneratorTaskSource:
         self._cnt = value
         logger.info(f"cnt изменён с {old_value} на {value}")
 
-    def get_tasks(self) -> list[Task]:
+    async def get_tasks(self) -> list[Task]:
         """
         Генерирует задачи в формате "Task i".
 
@@ -122,7 +122,7 @@ class APITaskSource:
         self.client = http_client
         logger.info("APITaskSource создан")
 
-    def get_tasks(self) -> list[Task]:
+    async def get_tasks(self) -> list[Task]:
         """
         Имитирует GET-запрос к API и возвращает фиксированный список задач.
 

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class TaskProcessor:
     """Обработчик задач из источника, соответствующего протоколу TaskSource."""
 
-    def process(self, source: TaskSource) -> list[Task]:
+    async def process(self, source: TaskSource) -> list[Task]:
         """
         Проверяет источник, получает и выводит задачи.
 
@@ -26,7 +26,7 @@ class TaskProcessor:
         logger.debug("Проверка контракта пройдена успешно")
 
         try:
-            tasks = source.get_tasks()
+            tasks = await source.get_tasks()
             logger.info(f"Получено {len(tasks)} задач от {source.__class__.__name__}")
             logger.debug(f"Задачи: {tasks}")
 

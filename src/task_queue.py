@@ -1,4 +1,7 @@
+import asyncio
 from collections.abc import Iterable, Iterator
+
+from src.iterator import TaskIterator
 from src.model import Task
 
 
@@ -13,13 +16,25 @@ class TaskQueue:
         """
         self._tasks: list[Task] = list(tasks) if tasks is not None else []
 
-    def add(self, task: Task) -> None:
+    async def add(self, task: Task) -> None:
         """
         Добавляет задачу в очередь
 
         :param task: объект задачи
+        :return: None
         """
         self._tasks.append(task)
+
+    async def pop(self) -> Task:
+        """
+        Асинхронно извлекает задачу из очереди.
+        Если очередь пуста - ждет появления задачи.
+
+        :return: извлеченная задача
+        """
+        while not self._tasks:
+            await asyncio.sleep(0.1)  # ждем появления задачи
+        return self._tasks.pop(0)
 
     def __len__(self) -> int:
         """
@@ -35,7 +50,7 @@ class TaskQueue:
 
         :return: итератор по задачам
         """
-        return iter(self._tasks)
+        return TaskIterator(self._tasks)
 
     def iter_by_status(self, status: str) -> Iterator[Task]:
         """
