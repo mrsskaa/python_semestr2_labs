@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from src.model import Task
 
@@ -113,42 +114,73 @@ class GeneratorTaskSource:
 
 class APITaskSource:
     """
-    Заглушка API, возвращает фиксированный список задач."
-    :param http_client: заглушка HTTP-клиента (может быть None для простоты)
+    Источник задач из внешнего API.
+    Использует HTTP-клиент для реальных запросов.
     """
 
-    def __init__(self, http_client: object = None):
-        """Инициализирует API-заглушку."""
-        self.client = http_client
-        logger.info("APITaskSource создан")
+    def __init__(self, http_client, api_url: str = "https://jsonplaceholder.typicode.com/todos"):
+        """
+        Инициализирует API-источник.
+
+        :param http_client: HTTP-клиент для выполнения запросов
+        :param api_url: URL API для получения задач
+        """
+        self._http_client = http_client
+        self._api_url = api_url
+        logger.info(f"APITaskSource создан, URL: {api_url}")
 
     async def get_tasks(self) -> list[Task]:
         """
-        Имитирует GET-запрос к API и возвращает фиксированный список задач.
+        Выполняет GET-запрос к API и возвращает список задач.
 
-        :return: фиксированный список задач
+        :return: список задач
+        :raises Exception: какая-то ошибка API
         """
-        response_data = [
-            {"id": 1, "description": "Сделать лабу", "priority": 3, "status": "pending"},
-            {"id": 2, "description": "Написать ридми", "priority": 3, "status": "pending"},
-            {"id": 3, "description": "Отправить Cамиру", "priority": 3, "status": "pending"},
-            {"id": 4, "description": "Доделать дизайн", "priority": 3, "status": "pending"},
-            {"id": 5, "description": "Начать писать фронт по практике", "priority": 3, "status": "pending"}
-        ]
+        logger.info(f"Запрос к API: {self._api_url}")
 
-        if self.client and hasattr(self.client, 'get'):
-            response_data = self.client.get("/api/tasks")
+        response = await self._http_client.get(self._api_url)
+
+        if response.get("status") != 200:
+            logger.error(f"ошибка API: {response.get('status')}")
+            raise Exception(f"API вернул ошибку {response.get('status')}")
+
+        data = response.get("data", [])
+
+        logger.info(f"Получено {len(data)} задач из API")
 
         tasks = []
-        for task_data in response_data:
+        for item in data:
             task = Task(
-                id=task_data["id"],
-                description=task_data["description"],
-                priority=task_data["priority"],
-                status=task_data["status"]
+                id=item["id"],
+                description=item.get("title", item.get("description", "Без описания")),
+                priority=3,
+                status="pending"
             )
             tasks.append(task)
+            logger.debug(f"Создана задача {task.id} из API")
 
-        logger.info(f"API-заглушка вернула {len(tasks)} задач")
-        logger.debug(f"Задачи из API: {tasks}")
         return tasks
+
+class HTTPClient:
+    """
+    HTTP-клиент для запросов к API
+    """
+
+    async def get(self, url: str) -> dict:
+        """
+        Выполняет GET-запрос.
+
+        :param url: адрес запроса
+        :return: ответ от сервера (словарь)
+        """
+        logger.info(f"GET {url}")
+
+        await asyncio.sleep(0.5)
+
+        return {
+            "status": 200,
+            "data": [
+                {"id": 1, "title": "Задача из API 1"},
+                {"id": 2, "title": "Задача из API 2"},
+            ]
+        }
