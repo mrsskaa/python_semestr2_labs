@@ -3,20 +3,23 @@ from src.sources import GeneratorTaskSource
 from src.model import Task
 
 
-def test_generator_creates_correct_number_of_tasks():
+@pytest.mark.asyncio
+async def test_generator_creates_correct_number_of_tasks():
     """Тест генерации правильного количества задач"""
     source = GeneratorTaskSource(5)
-    tasks = source.get_tasks()
+    tasks = await source.get_tasks()
 
     assert len(tasks) == 5
 
 
-def test_generator_task_format():
+@pytest.mark.asyncio
+async def test_generator_task_format():
     """Тест формата генерируемых задач"""
     source = GeneratorTaskSource(3)
-    tasks = source.get_tasks()
+    tasks = await source.get_tasks()
 
-    assert tasks[0].id == 1 and tasks[0].description.startswith("Сгенерированная задача")
+    assert tasks[0].id == 1
+    assert tasks[0].description.startswith("Сгенерированная задача")
     assert tasks[1].id == 2
     assert tasks[2].id == 3
 
@@ -33,7 +36,15 @@ def test_generator_cnt_setter_valid_value():
     source.cnt = 15
 
     assert source.cnt == 15
-    tasks = source.get_tasks()
+
+
+@pytest.mark.asyncio
+async def test_generator_cnt_setter_affects_get_tasks():
+    """Тест, что изменение cnt влияет на количество генерируемых задач"""
+    source = GeneratorTaskSource(5)
+    source.cnt = 15
+    tasks = await source.get_tasks()
+
     assert len(tasks) == 15
 
 
@@ -60,10 +71,11 @@ def test_generator_negative_tasks_in_init():
         GeneratorTaskSource(-5)
 
 
-def test_generator_returns_list_of_tasks():
+@pytest.mark.asyncio
+async def test_generator_returns_list_of_tasks():
     """Тест возвращаемого типа"""
     source = GeneratorTaskSource(3)
-    tasks = source.get_tasks()
+    tasks = await source.get_tasks()
 
     assert isinstance(tasks, list)
     assert all(isinstance(task, Task) for task in tasks)

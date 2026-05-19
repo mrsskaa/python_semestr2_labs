@@ -1,6 +1,7 @@
+import pytest
+import asyncio
 from src.model import Task
 from src.task_queue import TaskQueue
-import pytest
 
 
 def make_task(task_id: int, description: str, priority: int, status: str) -> Task:
@@ -32,10 +33,11 @@ def test_queue_can_be_iterated_twice() -> None:
     assert second_pass == [1]
 
 
-def test_queue_add_and_len() -> None:
+@pytest.mark.asyncio
+async def test_queue_add_and_len() -> None:
     """Тест добавления задачи и подсчёта длины очереди"""
     queue = TaskQueue()
-    queue.add(make_task(1, "Новая задача", 5, "pending"))
+    await queue.add(make_task(1, "Новая задача", 5, "pending"))
     assert len(queue) == 1
 
 
