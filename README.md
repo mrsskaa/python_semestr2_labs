@@ -131,4 +131,3 @@ tests/
 # Спасибо за внимание!
 
 ![forest.jpeg](forest.jpeg)
-

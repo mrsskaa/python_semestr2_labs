@@ -18,8 +18,8 @@ class AsyncTaskExecutor:
         :return: None
         """
         self.task_queue = task_queue
-        self.handlers = []
-        self.workers = []
+        self.handlers: list = []
+        self.workers: list = []
         self.num_workers = num_workers
         self._stop = False
 
