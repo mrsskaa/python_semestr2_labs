@@ -41,6 +41,8 @@ class AsyncTaskExecutor:
         """
         while not self._stop:
             task = await self.task_queue.pop()
+            if task is None:
+                break
             handler_found = False
 
             try:
@@ -78,8 +80,11 @@ class AsyncTaskExecutor:
         :return: None
         """
         self._stop = True
+        self.task_queue.close()
 
-        await asyncio.gather(*self.workers)
+        for worker in self.workers:
+            worker.cancel()
+        await asyncio.gather(*self.workers, return_exceptions=True)
         for handler in self.handlers:
             try:
                 await handler.cleanup()

@@ -58,6 +58,14 @@ async def test_pop_returns_correct_order():
 
 
 @pytest.mark.asyncio
+async def test_pop_returns_none_when_closed():
+    """pop на закрытой пустой очереди возвращает None."""
+    queue = TaskQueue()
+    queue.close()
+    assert await queue.pop() is None
+
+
+@pytest.mark.asyncio
 async def test_pop_on_empty_then_add():
     """Тест: pop на пустой очереди, потом добавление"""
     queue = TaskQueue()

@@ -15,6 +15,10 @@ class TaskQueue:
         :param tasks: итерируемая коллекция задач для начального заполнения
         """
         self._tasks: list[Task] = list(tasks) if tasks is not None else []
+        self._has_tasks = asyncio.Event()
+        self._closed = False
+        if self._tasks:
+            self._has_tasks.set()
 
     async def add(self, task: Task) -> None:
         """
@@ -23,18 +27,33 @@ class TaskQueue:
         :param task: объект задачи
         :return: None
         """
+        if self._closed:
+            raise RuntimeError("Очередь закрыта, добавление задач невозможно")
         self._tasks.append(task)
+        self._has_tasks.set()
 
-    async def pop(self) -> Task:
+    async def pop(self) -> Task | None:
         """
         Асинхронно извлекает задачу из очереди.
-        Если очередь пуста - ждет появления задачи.
+        Если очередь пуста — ждёт появления задачи.
+        После close() на пустой очереди возвращает None (сигнал остановки).
 
-        :return: извлеченная задача
+        :return: извлечённая задача или None при закрытой пустой очереди
         """
         while not self._tasks:
-            await asyncio.sleep(0.1)  # ждем появления задачи
-        return self._tasks.pop(0)
+            if self._closed:
+                return None
+            self._has_tasks.clear()
+            await self._has_tasks.wait()
+        task = self._tasks.pop(0)
+        if not self._tasks:
+            self._has_tasks.clear()
+        return task
+
+    def close(self) -> None:
+        """Закрывает очередь"""
+        self._closed = True
+        self._has_tasks.set()
 
     def __len__(self) -> int:
         """
