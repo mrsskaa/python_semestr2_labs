@@ -1,14 +1,17 @@
-from typing import Protocol, List, runtime_checkable
+from collections.abc import AsyncIterator
+from typing import Protocol, runtime_checkable
+
 from src.model import Task
 
 
 @runtime_checkable
 class TaskSource(Protocol):
-    """Протокол источника задач. Требует метод get_tasks"""
+    """Протокол источника задач: async-итерация + материализация в список."""
 
-    async def get_tasks(self) -> List[Task]:
-        """
-        Возвращает список задач.
-        :return: список задач
-        """
-        pass
+    def __aiter__(self) -> AsyncIterator[Task]:
+        """Асинхронно итерируется по задачам источника (лениво)."""
+        ...
+
+    async def get_tasks(self) -> list[Task]:
+        """Возвращает список задач (материализует async-итератор)."""
+        ...

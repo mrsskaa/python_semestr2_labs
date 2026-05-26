@@ -11,6 +11,10 @@ class AsyncMockSource:
         self._tasks = tasks or ["mock1", "mock2"]
         self.get_tasks_called = False
 
+    async def __aiter__(self):
+        for t in self._tasks:
+            yield t
+
     async def get_tasks(self):
         self.get_tasks_called = True
         return self._tasks

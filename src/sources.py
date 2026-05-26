@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from collections.abc import AsyncIterator
 from src.model import Task
 
 logger = logging.getLogger(__name__)
@@ -17,38 +18,36 @@ class FileTaskSource:
         self.file_name = file_name
         logger.info(f"FileTaskSource создан с файлом: {file_name}")
 
-    async def get_tasks(self) -> list[Task]:
-        """
-        Читает задачи из файла, игнорируя пустые строки.
-
-        :return: список задач или пустой список при ошибке
-        """
-        logger.debug(f"Чтение задач из файла: {self.file_name}")
-        tasks = []
+    async def __aiter__(self) -> AsyncIterator[Task]:
+        """Лениво отдаёт задачи из файла через async-итерацию."""
         try:
             with open(self.file_name, 'r', encoding='utf-8') as file:
                 for line_num, line in enumerate(file, 1):
                     line = line.strip()
                     if not line:
                         continue
-
-                    task = Task(
+                    yield Task(
                         id=line_num,
                         description=line,
                         priority=3,
                         status="pending"
                     )
-                    tasks.append(task)
-
-            logger.info(f"Из файла {self.file_name} прочитано {len(tasks)} задач")
-            return tasks
-
         except FileNotFoundError:
             logger.error(f"Файл {self.file_name} не найден")
-            return []
+            return
         except Exception as e:
             logger.exception(f"Ошибка при чтении файла: {e}")
-            return []
+            return
+
+    async def get_tasks(self) -> list[Task]:
+        """
+        Читает задачи из файла, игнорируя пустые строки.
+
+        :return: список задач или пустой список при ошибке
+        """
+        tasks = [task async for task in self]
+        logger.info(f"Из файла {self.file_name} прочитано {len(tasks)} задач")
+        return tasks
 
 
 class GeneratorTaskSource:
@@ -90,24 +89,23 @@ class GeneratorTaskSource:
         self._cnt = value
         logger.info(f"cnt изменён с {old_value} на {value}")
 
+    async def __aiter__(self) -> AsyncIterator[Task]:
+        """Лениво генерирует задачи через async-итерацию."""
+        for i in range(1, self._cnt + 1):
+            yield Task(
+                id=i,
+                description=f"Сгенерированная задача номер {i}",
+                priority=3,
+                status="pending"
+            )
+
     async def get_tasks(self) -> list[Task]:
         """
         Генерирует задачи в формате "Task i".
 
         :return: список сгенерированных задач
         """
-        logger.debug(f"Генерация {self._cnt} задач")
-        tasks = []
-        for i in range(1, self._cnt + 1):
-            task = Task(
-                id=i,
-                description=f"Сгенерированная задача номер {i}",
-                priority=3,
-                status="pending"
-            )
-            tasks.append(task)
-            logger.debug(f"Сгенерирована задача: {task}")
-
+        tasks = [task async for task in self]
         logger.info(f"Сгенерировано {len(tasks)} задач")
         return tasks
 
@@ -129,15 +127,9 @@ class APITaskSource:
         self._api_url = api_url
         logger.info(f"APITaskSource создан, URL: {api_url}")
 
-    async def get_tasks(self) -> list[Task]:
-        """
-        Выполняет GET-запрос к API и возвращает список задач.
-
-        :return: список задач
-        :raises Exception: какая-то ошибка API
-        """
+    async def __aiter__(self) -> AsyncIterator[Task]:
+        """Лениво отдаёт задачи из API через async-итерацию."""
         logger.info(f"Запрос к API: {self._api_url}")
-
         response = await self._http_client.get(self._api_url)
 
         if response.get("status") != 200:
@@ -145,20 +137,26 @@ class APITaskSource:
             raise Exception(f"API вернул ошибку {response.get('status')}")
 
         data = response.get("data", [])
-
         logger.info(f"Получено {len(data)} задач из API")
 
-        tasks = []
         for item in data:
-            task = Task(
+            yield Task(
                 id=item["id"],
                 description=item.get("title", item.get("description", "Без описания")),
                 priority=3,
                 status="pending"
             )
-            tasks.append(task)
-            logger.debug(f"Создана задача {task.id} из API")
 
+    async def get_tasks(self) -> list[Task]:
+        """
+        Выполняет GET-запрос к API и возвращает список задач.
+
+        :return: список задач
+        :raises Exception: какая-то ошибка API
+        """
+        tasks = [task async for task in self]
+        for task in tasks:
+            logger.debug(f"Создана задача {task.id} из API")
         return tasks
 
 class HTTPClient:

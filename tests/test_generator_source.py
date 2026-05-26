@@ -79,3 +79,11 @@ async def test_generator_returns_list_of_tasks():
 
     assert isinstance(tasks, list)
     assert all(isinstance(task, Task) for task in tasks)
+
+
+@pytest.mark.asyncio
+async def test_generator_supports_async_iteration():
+    """Источник поддерживает async for (итераторы/генераторы на источнике)."""
+    source = GeneratorTaskSource(3)
+    tasks = [task async for task in source]
+    assert [t.id for t in tasks] == [1, 2, 3]

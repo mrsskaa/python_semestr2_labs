@@ -54,3 +54,11 @@ async def test_file_source_returns_list_of_tasks(temp_task_file):
 
     assert isinstance(tasks, list)
     assert all(isinstance(task, Task) for task in tasks)
+
+
+@pytest.mark.asyncio
+async def test_file_source_supports_async_iteration(temp_task_file):
+    """Источник поддерживает async for (итераторы/генераторы на источнике)."""
+    source = FileTaskSource(temp_task_file)
+    tasks = [task async for task in source]
+    assert [t.description for t in tasks] == ["Задача 1", "Задача 2", "Задача 3", "Задача 4"]

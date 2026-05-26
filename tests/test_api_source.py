@@ -46,3 +46,12 @@ async def test_api_source_custom_url():
 
     assert isinstance(tasks, list)
     assert len(tasks) == 2
+
+
+@pytest.mark.asyncio
+async def test_api_source_supports_async_iteration():
+    """Источник поддерживает async for (итераторы/генераторы на источнике)."""
+    client = HTTPClient()
+    source = APITaskSource(http_client=client)
+    tasks = [task async for task in source]
+    assert len(tasks) == 2
